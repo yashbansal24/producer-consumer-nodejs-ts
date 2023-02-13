@@ -11,19 +11,6 @@ const kafka = new Kafka({
     logLevel: logLevel.DEBUG
 });
 
-const consumerNumber = process.argv[2] || '1';
-
-const logMessage = (counter, consumerName, topic, partition, message) => {
-    console.log(`received a new message number: ${counter} on ${consumerName}: `, {
-        topic,
-        partition,
-        message: {
-            offset: message.offset,
-            headers: message.headers,
-            value: message.value.toString()
-        },
-    });
-};
 
 class KafkaConsumer implements ConsumerService {
     topicName: string;
@@ -42,16 +29,21 @@ class KafkaConsumer implements ConsumerService {
     }
     async consume () {
         await this.consumer.run({
-            eachMessage: async ({ topic, partition, message }) => {
-                const { streetId } = JSON.parse(message.value.toString())
-                if (!streetId) {
-                    return
+            eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+                console.log(batch.messages.length)
+                const chunkSize = 100;
+                for (let i = 0; i < batch.messages.length; i += chunkSize) {
+                    const chunk = batch.messages.slice(i, i + chunkSize);
+                    await Promise.all(
+                        chunk.map((message, idx) => {
+                            console.log(i, idx);
+                            const { streetId } = JSON.parse(message.value.toString())
+                            return StreetsService.getStreetInfoById(streetId)
+                            .then((streetInfo) => writeStreetInfo(streetInfo))
+                            .then((resp) => console.log(resp))
+                        }))
                 }
-                const streetInfo = await StreetsService.getStreetInfoById(streetId)
-                const writeInfo = await writeStreetInfo(streetInfo)
-                logMessage(this.consumerCount, `streetsConsumer#${consumerNumber} ${writeInfo}`, topic, partition, message);
-                this.consumerCount++;
-            },
+            }
         });
     };
     disconnect () {

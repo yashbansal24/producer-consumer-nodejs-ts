@@ -4,6 +4,7 @@ const cities = process.argv.slice(2);
 
 Producer.connect();
 
+// console.log(cities)
 cities.forEach((city_name: City) => {
     streetsService.getStreetsInCity(city_name)
     .then(({city, streets}) => {

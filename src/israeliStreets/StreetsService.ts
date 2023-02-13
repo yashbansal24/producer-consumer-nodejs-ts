@@ -28,6 +28,9 @@ export class StreetsService{
 		return this._axios
 	}
 	static async getStreetsInCity(city: city): Promise<{city: city, streets: Pick<Street, 'streetId' | 'street_name'>[]}>{
+		if(!cities[city]) {
+			throw new Error('Invalid City name: ' + city)
+		}
 		const res = (await this.axios.post('https://data.gov.il/api/3/action/datastore_search', {resource_id:`1b14e41c-85b3-4c21-bdce-9fe48185ffca`, filters: {city_name: cities[city]}, limit: 100000})).data
 		const results = res.result.records
 		if (!results || !results.length) {
