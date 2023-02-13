@@ -7,18 +7,16 @@ const kafka = new Kafka({
 
 const topicName = 'test-events';
 
-const msg = JSON.stringify({city: 1, street: 1});
-const processProducer  = async (data) => {
+const produce  = async (data) => {
     const producer = kafka.producer();
     await producer.connect();
-    for (let i = 0; i < 3; i++) {
-        await producer.send({
-            topic: topicName,
-            messages: [
-                { value: msg },
-            ],
-        });
-    }
+    console.log(data)
+    await producer.send({
+        topic: topicName,
+        messages: [
+            { value: data },
+        ],
+    });
 };
 
-export default processProducer;
+export default produce;

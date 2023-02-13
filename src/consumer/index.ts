@@ -1,5 +1,6 @@
 const { Kafka } = require('kafkajs');
-
+import { writeStreetInfo } from "../data/prismaClient";
+import { StreetsService } from "../israeliStreets";
 const kafka = new Kafka({
     clientId: 'my-app',
     brokers: ['localhost:9092']
@@ -9,31 +10,27 @@ const topicName = 'test-events';
 const consumerNumber = process.argv[2] || '1';
 
 const processConsumer  = async () => {
-    const cityConsumer = kafka.consumer({groupId: 'city'});
     const streetsConsumer = kafka.consumer({groupId: 'street'});
     
     await Promise.all([
-        cityConsumer.connect(),
         streetsConsumer.connect(),
     ]);
 
     await Promise.all([
-        await cityConsumer.subscribe({ topic: topicName }),
         await streetsConsumer.subscribe({ topic: topicName })
     ]);
 
-    let cityCounter = 1;
     let streetCounter = 1;
 
-    await cityConsumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-            logMessage(cityCounter, `cityConsumer#${consumerNumber}`, topic, partition, message);
-            cityCounter++;
-        },
-    });
     await streetsConsumer.run({
         eachMessage: async ({ topic, partition, message }) => {
-            logMessage(streetCounter, `streetsConsumer#${consumerNumber}`, topic, partition, message);
+            const { streetId } = JSON.parse(message.value.toString())
+            if (!streetId) {
+                return
+            }
+            const streetInfo = await StreetsService.getStreetInfoById(streetId)
+            const writeInfo = await writeStreetInfo(streetInfo)
+            logMessage(streetCounter, `streetsConsumer#${consumerNumber} ${writeInfo}`, topic, partition, message);
             streetCounter++;
         },
     });
