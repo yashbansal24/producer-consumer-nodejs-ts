@@ -19,4 +19,8 @@ const produce  = async (data) => {
     });
 };
 
+// export class Producer() {
+
+// }
+
 export default produce;
