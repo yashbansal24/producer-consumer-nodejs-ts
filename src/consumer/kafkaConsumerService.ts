@@ -58,7 +58,7 @@ class KafkaConsumer implements ConsumerService {
         this.consumer.disconnect();
     };
 }
-// console.log(process.env)
+
 const kafkaConsumer = new KafkaConsumer(process.env.KAFKA_TOPIC);
 kafkaConsumer.connect()
 kafkaConsumer.subscribe()

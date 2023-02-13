@@ -32,7 +32,6 @@ export async function writeStreetInfo(streetInfo) {
                 official_code: streetInfo.official_code
             }
         }) 
-        console.log(streeDetails);
         return omit(streeDetails, ["id","_id"]);
     }
     return omit(existingStreet, ["id","_id"]);
