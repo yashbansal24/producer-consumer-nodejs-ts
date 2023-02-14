@@ -1,6 +1,6 @@
 import ConsumerService from "./consumerService";
 import { logLevel } from "kafkajs";
-import { writeStreetInfo } from "../data/prismaClient";
+import { writeStreetInfo , upsertStreetInfo} from "../data/prismaClient";
 import { StreetsService } from "../israeliStreets";
 const { Kafka } = require('kafkajs');
 const dotenv = require('dotenv');
@@ -39,7 +39,7 @@ class KafkaConsumer implements ConsumerService {
                             console.log(i, idx);
                             const { streetId } = JSON.parse(message.value.toString())
                             return StreetsService.getStreetInfoById(streetId)
-                            .then((streetInfo) => writeStreetInfo(streetInfo))
+                            .then((streetInfo) => upsertStreetInfo(streetInfo))
                             .then((resp) => console.log(resp))
                         }))
                 }
