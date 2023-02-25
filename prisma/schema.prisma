@@ -22,4 +22,5 @@ model Street {
   street_name String
   street_name_status String
   official_code BigInt
+  @@index([city_name])
 }
